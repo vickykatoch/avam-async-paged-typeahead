@@ -5,12 +5,13 @@ import { AutoSizer, IndexRange, InfiniteLoader, List, ListRowProps } from 'react
 
 interface AsyncPagedTypeaheadProps {
     scrollThreshold: number;
+    minChars?: number;
     rowHeight: number;
     fetchNext: (token: string, newQuery?: boolean) => Promise<Array<any>>;
     rowRenderer: (props: ListRowProps & { item: any }) => React.ReactNode;
 }
 
-const AsyncPagedTypeahead: React.FC<AsyncPagedTypeaheadProps> = ({ rowHeight, scrollThreshold, fetchNext, rowRenderer }) => {
+const AsyncPagedTypeahead: React.FC<AsyncPagedTypeaheadProps> = ({ rowHeight, minChars, scrollThreshold, fetchNext, rowRenderer }) => {
     const inputRef = React.useRef<HTMLInputElement>(null);
     const [rowCount, setRowCount] = React.useState<number>(0);
     const [dataList, setDataList] = React.useState<Array<any>>([]);
@@ -19,38 +20,56 @@ const AsyncPagedTypeahead: React.FC<AsyncPagedTypeaheadProps> = ({ rowHeight, sc
     const [searchText, setSearchText] = React.useState<string>('');
 
     React.useEffect(() => {
-        console.log('CALLED');
         let sub: Subscription;
         if (inputRef.current) {
             inputRef.current.focus();
             sub = fromEvent(inputRef.current, 'input').pipe(
                 debounce(() => timer(300)),
-                map(({ target }: any) => target.value),
-            ).subscribe(async (token) => {
-                setSearchText(token);
-                setLoading(false);
-                setDataList([]);
-                setRowCount(0);
-                setHasMore(false);
-                if (token) {
-                    setLoading(true);
-                    const data = await fetchNext(token, true);
-                    if (data.length) {
-                        setHasMore(true);
-                        setDataList(data);
-                        setRowCount(data.length + 1);
-                        setLoading(false);
-                    } else {
-                        setLoading(false);
-                        setHasMore(false);
-                    }
-                }
-            });
+                map(({ target }: any) => (target.value || '').trim()),
+            ).subscribe(setSearchText);
         }
         return () => {
             sub?.unsubscribe();
         };
-    }, [fetchNext, setHasMore, setDataList, setRowCount, setLoading, setSearchText]);
+    }, [fetchNext, setSearchText]);
+
+    const setData = React.useCallback((data?: Array<any>) => {
+        console.log('CALLED SETDATA')
+        if (Array.isArray(data)) {
+            setLoading(false);
+            setDataList(data);
+            if (data.length) {
+                setRowCount(data.length + 1);
+                setHasMore(true);
+            } else {
+                setRowCount(0);
+                setHasMore(false);
+            }
+        } else {
+            setLoading(false);
+            setDataList([]);
+            setRowCount(0);
+            setHasMore(false);
+        }
+    }, [setLoading, setDataList, setRowCount, setHasMore]);
+
+    React.useEffect(() => {
+        const fn = async () => {
+            const data = await fetchNext(searchText, true);
+            setData(data);
+        };
+        if (searchText) {
+            setLoading(true);
+            const shudSearch = searchText.length >= (minChars || 0);
+            if (shudSearch) {
+                fn();
+            } else {
+                setData();
+            }
+        } else {
+            setData();
+        }
+    }, [searchText, setData, setLoading,minChars]);
 
     const isRowLoaded = React.useCallback(({ index }) => {
         return Boolean(dataList[index]);

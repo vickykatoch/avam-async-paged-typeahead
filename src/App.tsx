@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import './App.scss';
-import { AsyncPagedTypeahead, SuperListInfinite } from './common/components';
+import { AsyncPagedTypeahead } from './common/components';
 import { fetchAmpsData } from './common/data';
 import RowRenderer from './common/row-renderer';
 
@@ -12,8 +12,7 @@ function App() {
   },[]);
   return (
     <div className="App">
-      <AsyncPagedTypeahead fetchNext={dataLoader} scrollThreshold={15} rowRenderer={getRowRender} rowHeight={25} />
-      {/* <SuperListInfinite batchSize={20} isLoadMoreCacheReset={true} scrollThreshold={20}/> */}
+      <AsyncPagedTypeahead fetchNext={dataLoader} scrollThreshold={15} rowRenderer={getRowRender} rowHeight={25} minChars={3}/>
     </div>
   );
 }

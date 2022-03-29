@@ -1,12 +1,7 @@
 import faker from '@faker-js/faker';
 import { nanoid } from 'nanoid';
+import { head } from 'ramda';
 import { AmpsPagedDataSubscriber, IAmpsConnectionInfo, IAmpsSubscriptionInfo } from '../amps';
-
-interface IData {
-    pageIndex: number;
-    data: Array<any>;
-    hasMore: boolean;
-}
 
 interface DataSpec {
     currentPage: number;
@@ -61,7 +56,14 @@ export function fetchAmpsData(pageSize: number) {
     return (token: string, newQuery?: boolean): Promise<Array<any>> => {
         return new Promise<Array<any>>(async resolve => {
             if (newQuery) {                
-                response = await subscriber.fetch(`/firstName LIKE "(?i)${token}$"`, pageSize);
+                const splitTokens = token.split(' ').filter(t=>!!t);
+                let query = '';
+                if(splitTokens.length>1) {
+                    query = splitTokens.reduce((acc,cur)=> `${acc}${cur}.*`,'^');
+                } else {
+                    query= `^${head(splitTokens)!}.*`;
+                }
+                response = await subscriber.fetch(`/fullName LIKE "(?i)${query}$"`, pageSize);
                 resolve(response.data);
             } else if (!response.done) {
                 const { done, data } = await response.next();
