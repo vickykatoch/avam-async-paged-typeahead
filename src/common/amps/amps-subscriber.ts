@@ -66,13 +66,14 @@ export class AmpsPagedDataSubscriber {
     private fetchBatchData(client: Client, filter: string, batchSize: number, pageIndex: number): Promise<any[]> {
         const options = `${this.subInfo.options}, skip_n=${pageIndex*batchSize}, top_n=${batchSize}`;
         const cmd = this.buildCommand(filter, options);
-        return new Promise<any[]>((resolve) => {
+        return new Promise<any[]>(async (resolve) => {
             const collection:any[] = [];
-            client.execute(cmd, (msg: Message) => {
+            const subId = await  client.execute(cmd, (msg: Message) => {
                 const { c, data } = msg;
                 if (data) {
                     collection.push(msg.data);
                 } else if (c === 'group_end') {
+                    client.unsubscribe(subId);
                     resolve(collection);
                 }
             });

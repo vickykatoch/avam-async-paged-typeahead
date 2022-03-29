@@ -60,8 +60,8 @@ export function fetchAmpsData(pageSize: number) {
     let response: any;
     return (token: string, newQuery?: boolean): Promise<Array<any>> => {
         return new Promise<Array<any>>(async resolve => {
-            if (newQuery) {
-                response = await subscriber.fetch(`/firstName LIKE "${token}"`, pageSize);
+            if (newQuery) {                
+                response = await subscriber.fetch(`/firstName LIKE "(?i)${token}$"`, pageSize);
                 resolve(response.data);
             } else if (!response.done) {
                 const { done, data } = await response.next();
