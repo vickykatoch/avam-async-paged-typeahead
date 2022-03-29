@@ -1,10 +1,6 @@
-// import faker from 'faker';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Col, Row } from 'react-bootstrap';
 import { AutoSizer, IndexRange, InfiniteLoader, List, ListRowProps } from 'react-virtualized';
-// import wait from 'waait';
-// import { SuperProps } from './super-props';
-// import faker from 'faker';
 import faker, { GenderType } from '@faker-js/faker';
 
 const wait = (n: number) => new Promise(resolve => setTimeout(resolve, n));
@@ -27,10 +23,12 @@ export interface SuperListProps {
     isLoadMoreCacheReset?: boolean,
 }
 
+
 const SuperListInfinite = (props: SuperListProps) => {
     const [list, setList] = useState<any[]>([]);
     const [count, setCount] = useState<number>(1);
     const [rowCount, setRowCount] = useState<number>(1);
+    
 
     // memorizes the next value unless the list or count changes.
     const hasNext = useMemo<boolean>(() => {
@@ -61,7 +59,9 @@ const SuperListInfinite = (props: SuperListProps) => {
      * We wrap it in useCallback because we don't want the method signature to change from render-to-render unless one
      * of the dependencies changes.
      */
-    const loadMoreRows = useCallback(({ startIndex, stopIndex }: IndexRange): Promise<any> => {
+    const loadMoreRows = useCallback((params: IndexRange): Promise<any> => {
+        debugger;
+        const { startIndex, stopIndex } = params;
         const batchSize = stopIndex - startIndex;
         const offset = stopIndex;
 
@@ -89,7 +89,6 @@ const SuperListInfinite = (props: SuperListProps) => {
                         ? newLists.length + 1
                         : newLists.length);
                     setList(newLists);
-
                     resolve({});
                 });
             });
@@ -155,7 +154,7 @@ const SuperListInfinite = (props: SuperListProps) => {
             ? list.length + 1
             : list.length);
     }, [hasNext, list, setRowCount]);
-
+    
     return (
         <InfiniteLoader
             threshold={props.scrollThreshold}
@@ -165,17 +164,18 @@ const SuperListInfinite = (props: SuperListProps) => {
         >
             {({ onRowsRendered, registerChild }) => (
                 <AutoSizer disableHeight>
-                    {({ width }) => (
-                        <List
+                    {({ width, height }) => {
+                        return <List
                             height={500}
                             onRowsRendered={onRowsRendered}
                             ref={registerChild}
                             rowCount={rowCount}
-                            rowHeight={100}
+                            rowHeight={50}
                             rowRenderer={rowRenderer}
                             width={width}
+                            // height={height}
                         />
-                    )}
+                    }}
                 </AutoSizer>
             )}
         </InfiniteLoader>

@@ -11,3 +11,15 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+.pos-rel {
+  position: relative;
+}
+.layer {
+  position: absolute;
+  top:100%;
+  left:0;
+  right:0;
+  height: 200px;
+  border: 1px solid gray;
+  // overflow: auto;
+}
