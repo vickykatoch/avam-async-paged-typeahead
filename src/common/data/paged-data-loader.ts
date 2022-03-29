@@ -1,5 +1,6 @@
 import faker from '@faker-js/faker';
 import { nanoid } from 'nanoid';
+import { AmpsPagedDataSubscriber, IAmpsConnectionInfo, IAmpsSubscriptionInfo } from '../amps';
 
 interface IData {
     pageIndex: number;
@@ -13,8 +14,8 @@ interface DataSpec {
 };
 const getSingleRecord = (index: number): any => ({
     id: nanoid(12),
-    firstName: faker.name.firstName(index%2===0 ? 'male' : 'female'),
-    lastName: faker.name.lastName(index%2===0 ? 'male' : 'female'),
+    firstName: faker.name.firstName(index % 2 === 0 ? 'male' : 'female'),
+    lastName: faker.name.lastName(index % 2 === 0 ? 'male' : 'female'),
     title: faker.name.title().toString(),
     date: faker.date.past().toDateString(),
     version: nanoid(15),
@@ -30,13 +31,49 @@ export function fetchData(pageSize: number) {
 
     return (newQuery?: boolean): Promise<Array<any>> => {
         return new Promise<Array<any>>(resolve => {
-            dataSpec = newQuery ? {currentPage:1, totalPages:10} : {...dataSpec, currentPage:dataSpec.currentPage+1};
+            dataSpec = newQuery ? { currentPage: 1, totalPages: 1000 } : { ...dataSpec, currentPage: dataSpec.currentPage + 1 };
             console.log(`Loading Page : [${dataSpec.currentPage}]`);
-            if( dataSpec.currentPage <= dataSpec.totalPages) {
-                setTimeout(()=>  resolve(getData(pageSize)),2000);
+            if (dataSpec.currentPage <= dataSpec.totalPages) {
+                setTimeout(() => resolve(getData(pageSize)), 500);
             } else {
                 resolve([]);
-            }            
+            }
         });
     };
 }
+
+//#region AMPS
+const conInfo: IAmpsConnectionInfo = {
+    name: 'DATA-FETCHER',
+    url: ['ws://avam-ubnt:9028/amps/json']
+};
+const subInfo: IAmpsSubscriptionInfo = {
+    name: 'NAMES-DATA-SERVICE',
+    filter: '/firstName LIKE b',
+    options: 'no_empties,oof,replace',
+    topic: '/fake/names',
+    keyField: 'id'
+}
+
+export function fetchAmpsData(pageSize: number) {
+    const subscriber = new AmpsPagedDataSubscriber(conInfo, subInfo);
+    let response: any;
+    return (token: string, newQuery?: boolean): Promise<Array<any>> => {
+        return new Promise<Array<any>>(async resolve => {
+            if (newQuery) {
+                response = await subscriber.fetch(`/firstName LIKE "${token}"`, pageSize);
+                resolve(response.data);
+            } else if (!response.done) {
+                const { done, data } = await response.next();
+                resolve(data);
+                done && (response.done = true);
+            } else {
+                resolve([]);
+            }
+        });
+    };
+}
+
+
+
+//#endregion
