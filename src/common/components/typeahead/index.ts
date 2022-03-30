@@ -1,1 +1,1 @@
-export {default as AsyncPagedTypeahead} from './async-paged-typeahaed'; 
+export {default as AsyncPagedTypeahead} from './async-paged-typeahead'; 

@@ -7,12 +7,16 @@ interface AsyncPagedTypeaheadProps {
     scrollThreshold: number;
     minChars?: number;
     rowHeight: number;
-    resultWidth?:number;
+    resultWidth?: number;
     fetchNext: (token: string, newQuery?: boolean) => Promise<Array<any>>;
-    RowItemRenderer:React.FunctionComponent<{listRowProps: ListRowProps;item:any; onClick: (item:any)=> void; style: React.CSSProperties}>;
+    RowItemRenderer: React.FunctionComponent<{ listRowProps: ListRowProps; item: any; onClick: (item: any) => void; style: React.CSSProperties }>;
+    onItemSelected?: (item: any) => void;
+    value: any;
+    itemToString?: (item: any) => string;
 }
 
-const AsyncPagedTypeahead: React.FC<AsyncPagedTypeaheadProps> = ({ rowHeight, minChars, scrollThreshold,resultWidth, fetchNext, RowItemRenderer }) => {
+const AsyncPagedTypeahead: React.FC<AsyncPagedTypeaheadProps> = ({ rowHeight, minChars, scrollThreshold, resultWidth,
+    fetchNext, RowItemRenderer, onItemSelected, value, itemToString }) => {
     const inputRef = React.useRef<HTMLInputElement>(null);
     const [rowCount, setRowCount] = React.useState<number>(0);
     const [dataList, setDataList] = React.useState<Array<any>>([]);
@@ -34,9 +38,15 @@ const AsyncPagedTypeahead: React.FC<AsyncPagedTypeaheadProps> = ({ rowHeight, mi
         };
     }, [fetchNext, setSearchText]);
 
+    React.useEffect(() => {
+        if (inputRef.current) {
+            inputRef.current.value = value ? itemToString ? itemToString(value) : value : '';
+        }
+    }, [value, itemToString]);
+    
     const setData = React.useCallback((data?: Array<any>) => {
         if (Array.isArray(data)) {
-            setLoading(false);           
+            setLoading(false);
             if (data.length) {
                 setRowCount(data.length + 1);
                 setDataList(data);
@@ -70,7 +80,7 @@ const AsyncPagedTypeahead: React.FC<AsyncPagedTypeaheadProps> = ({ rowHeight, mi
         } else {
             setData();
         }
-    }, [searchText, setData, setLoading,minChars]);
+    }, [searchText, setData, setLoading, minChars]);
 
     const isRowLoaded = React.useCallback(({ index }) => {
         return Boolean(dataList[index]);
@@ -93,17 +103,17 @@ const AsyncPagedTypeahead: React.FC<AsyncPagedTypeaheadProps> = ({ rowHeight, mi
             setLoading(false);
         }
     }, [dataList, hasMore, setLoading, searchText]);
-    
-    const onItemClick = React.useCallback((item)=> {
-        console.log('Item Clicked',item);
-    },[]);
+
+    const onItemClick = React.useCallback((item) => {
+        onItemSelected && onItemSelected(item);
+        setData();
+    }, [setData]);
 
     return <div className='d-flex justify-content-center mt-3'>
         <div style={{ width: 200 }} className="d-flex pos-rel">
             <input ref={inputRef} style={{ width: '100%' }} />
-            
             {loading && <div style={{ position: 'absolute', right: 0 }}>Loading...</div>}
-            {rowCount > 0 && <div className='layer' style={{width: resultWidth || 'auto'}}>
+            {rowCount > 0 && <div className='layer' style={{ width: resultWidth || 'auto' }}>
                 <InfiniteLoader
                     threshold={scrollThreshold}
                     isRowLoaded={isRowLoaded}
