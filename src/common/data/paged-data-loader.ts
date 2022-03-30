@@ -59,9 +59,11 @@ export function fetchAmpsData(pageSize: number) {
                 const splitTokens = token.split(' ').filter(t=>!!t);
                 let query = '';
                 if(splitTokens.length>1) {
+                    // query = splitTokens.reduce((acc,cur)=> `${acc}${cur}.*`,'^'); When starts with is required
                     query = splitTokens.reduce((acc,cur)=> `${acc}${cur}.*`,'^');
                 } else {
-                    query= `^${head(splitTokens)!}.*`;
+                    // query= `^${head(splitTokens)!}.*`; When starts with is required
+                    query= `${head(splitTokens)!}.*`;
                 }
                 response = await subscriber.fetch(`/fullName LIKE "(?i)${query}$"`, pageSize);
                 resolve(response.data);

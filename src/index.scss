@@ -26,3 +26,10 @@ code {
   margin-bottom: .5em;
   // overflow: auto;
 }
+.hover {
+  cursor: pointer;
+  &:hover  {
+    background: rgb(79, 79, 240);
+    color: #fff;
+  }
+}

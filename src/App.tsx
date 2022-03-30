@@ -5,14 +5,14 @@ import { fetchAmpsData } from './common/data';
 import RowRenderer from './common/row-renderer';
 
 const dataLoader = fetchAmpsData(20);
-const getRowRender = (props: any) => <RowRenderer {... props} />;
+
 function App() {
   useEffect(()=> {
     fetchAmpsData(50);
   },[]);
   return (
     <div className="App">
-      <AsyncPagedTypeahead fetchNext={dataLoader} scrollThreshold={15} rowRenderer={getRowRender} rowHeight={25} minChars={3}/>
+      <AsyncPagedTypeahead fetchNext={dataLoader} scrollThreshold={15} RowItemRenderer={RowRenderer} rowHeight={20} minChars={3} resultWidth={400}/>
     </div>
   );
 }

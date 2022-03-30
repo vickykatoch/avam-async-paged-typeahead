@@ -7,11 +7,12 @@ interface AsyncPagedTypeaheadProps {
     scrollThreshold: number;
     minChars?: number;
     rowHeight: number;
+    resultWidth?:number;
     fetchNext: (token: string, newQuery?: boolean) => Promise<Array<any>>;
-    rowRenderer: (props: ListRowProps & { item: any }) => React.ReactNode;
+    RowItemRenderer:React.FunctionComponent<{listRowProps: ListRowProps;item:any; onClick: (item:any)=> void; style: React.CSSProperties}>;
 }
 
-const AsyncPagedTypeahead: React.FC<AsyncPagedTypeaheadProps> = ({ rowHeight, minChars, scrollThreshold, fetchNext, rowRenderer }) => {
+const AsyncPagedTypeahead: React.FC<AsyncPagedTypeaheadProps> = ({ rowHeight, minChars, scrollThreshold,resultWidth, fetchNext, RowItemRenderer }) => {
     const inputRef = React.useRef<HTMLInputElement>(null);
     const [rowCount, setRowCount] = React.useState<number>(0);
     const [dataList, setDataList] = React.useState<Array<any>>([]);
@@ -34,14 +35,14 @@ const AsyncPagedTypeahead: React.FC<AsyncPagedTypeaheadProps> = ({ rowHeight, mi
     }, [fetchNext, setSearchText]);
 
     const setData = React.useCallback((data?: Array<any>) => {
-        console.log('CALLED SETDATA')
         if (Array.isArray(data)) {
-            setLoading(false);
-            setDataList(data);
+            setLoading(false);           
             if (data.length) {
                 setRowCount(data.length + 1);
+                setDataList(data);
                 setHasMore(true);
             } else {
+                setDataList([]);
                 setRowCount(0);
                 setHasMore(false);
             }
@@ -92,12 +93,17 @@ const AsyncPagedTypeahead: React.FC<AsyncPagedTypeaheadProps> = ({ rowHeight, mi
             setLoading(false);
         }
     }, [dataList, hasMore, setLoading, searchText]);
+    
+    const onItemClick = React.useCallback((item)=> {
+        console.log('Item Clicked',item);
+    },[]);
 
     return <div className='d-flex justify-content-center mt-3'>
         <div style={{ width: 200 }} className="d-flex pos-rel">
             <input ref={inputRef} style={{ width: '100%' }} />
+            
             {loading && <div style={{ position: 'absolute', right: 0 }}>Loading...</div>}
-            {rowCount > 0 && <div className='layer'>
+            {rowCount > 0 && <div className='layer' style={{width: resultWidth || 'auto'}}>
                 <InfiniteLoader
                     threshold={scrollThreshold}
                     isRowLoaded={isRowLoaded}
@@ -117,7 +123,7 @@ const AsyncPagedTypeahead: React.FC<AsyncPagedTypeaheadProps> = ({ rowHeight, mi
                                         if (!isRowLoaded(props)) {
                                             return <span key={props.key} style={props.style}>Loading...</span>;
                                         } else {
-                                            return rowRenderer({ ...props, item: dataList[props.index] })
+                                            return <RowItemRenderer key={props.key} style={props.style} listRowProps={props} item={dataList[props.index]} onClick={onItemClick} />
                                         }
                                     }}
                                     width={width}
