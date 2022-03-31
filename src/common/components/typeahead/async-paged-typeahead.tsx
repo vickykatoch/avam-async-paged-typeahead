@@ -3,12 +3,18 @@ import { fromEvent, Subscription, timer } from 'rxjs';
 import { debounce, map } from 'rxjs/operators';
 import { AutoSizer, IndexRange, InfiniteLoader, List, ListRowProps } from 'react-virtualized';
 
-interface AsyncPagedTypeaheadProps {
+export interface IAsyncData {
+    done?: boolean;
+    data: Array<any>;
+    error?: string;
+}
+
+export interface AsyncPagedTypeaheadProps {
     scrollThreshold: number;
     minChars?: number;
     rowHeight: number;
     resultWidth?: number;
-    fetchNext: (token: string, newQuery?: boolean) => Promise<Array<any>>;
+    fetchNext: (token: string, newQuery?: boolean) => Promise<IAsyncData>;
     RowItemRenderer: React.FunctionComponent<{ listRowProps: ListRowProps; item: any; onClick: (item: any) => void; style: React.CSSProperties }>;
     onItemSelected?: (item: any) => void;
     value: any;
@@ -23,6 +29,7 @@ const AsyncPagedTypeahead: React.FC<AsyncPagedTypeaheadProps> = ({ rowHeight, mi
     const [hasMore, setHasMore] = React.useState<boolean>(false);
     const [loading, setLoading] = React.useState<boolean>(false);
     const [searchText, setSearchText] = React.useState<string>('');
+    const [error, setError] = React.useState<string>('');
 
     React.useEffect(() => {
         let sub: Subscription;
@@ -36,27 +43,31 @@ const AsyncPagedTypeahead: React.FC<AsyncPagedTypeaheadProps> = ({ rowHeight, mi
         return () => {
             sub?.unsubscribe();
         };
-    }, [fetchNext, setSearchText]);
+    }, [setSearchText]);
 
     React.useEffect(() => {
         if (inputRef.current) {
             inputRef.current.value = value ? itemToString ? itemToString(value) : value : '';
         }
     }, [value, itemToString]);
-    
-    const setData = React.useCallback((data?: Array<any>) => {
-        if (Array.isArray(data)) {
+
+    const setData = React.useCallback((searchResult?: IAsyncData) => {
+        if (searchResult) {
             setLoading(false);
-            if (data.length) {
-                setRowCount(data.length + 1);
-                setDataList(data);
-                setHasMore(true);
-            } else {
+            if (searchResult.error) {
+                setError(searchResult.error);
                 setDataList([]);
                 setRowCount(0);
                 setHasMore(false);
+            } else {
+                const recCount = searchResult.done ? searchResult.data.length : searchResult.data.length + 1;
+                setRowCount(recCount);
+                setError('');
+                setDataList(searchResult.data);
+                setHasMore(!searchResult.done);
             }
         } else {
+            setError('');
             setLoading(false);
             setDataList([]);
             setRowCount(0);
@@ -66,16 +77,16 @@ const AsyncPagedTypeahead: React.FC<AsyncPagedTypeaheadProps> = ({ rowHeight, mi
 
     React.useEffect(() => {
         const fn = async () => {
+            setLoading(true);
             const data = await fetchNext(searchText, true);
             setData(data);
         };
         if (searchText) {
             setLoading(true);
+            setData()
             const shudSearch = searchText.length >= (minChars || 0);
             if (shudSearch) {
                 fn();
-            } else {
-                setData();
             }
         } else {
             setData();
@@ -89,20 +100,22 @@ const AsyncPagedTypeahead: React.FC<AsyncPagedTypeaheadProps> = ({ rowHeight, mi
     const loadMoreRows = React.useCallback(async (params: IndexRange) => {
         if (hasMore) {
             setLoading(true);
-            const data = await fetchNext(searchText);
-            if (data.length) {
-                const resolvedData = [...dataList, ...data];
-                setHasMore(true);
-                setDataList(resolvedData);
-                setRowCount(resolvedData.length + 1);
-            } else {
+            const result = await fetchNext(searchText);
+            if (result.error) {
+                setError(result.error);
+                setDataList([]);
+                setRowCount(0);
                 setHasMore(false);
-                setRowCount(dataList.length);
-                console.log('No More data available');
+            } else {
+                const resolvedData = [...dataList, ...result.data];
+                const recCount = result.done ? resolvedData.length : resolvedData.length + 1;
+                setDataList(resolvedData);
+                setRowCount(recCount);
+                setHasMore(!result.done);
             }
             setLoading(false);
         }
-    }, [dataList, hasMore, setLoading, searchText]);
+    }, [dataList, hasMore, setLoading, setRowCount, searchText]);
 
     const onItemClick = React.useCallback((item) => {
         onItemSelected && onItemSelected(item);
@@ -111,7 +124,7 @@ const AsyncPagedTypeahead: React.FC<AsyncPagedTypeaheadProps> = ({ rowHeight, mi
 
     return <div className='d-flex justify-content-center mt-3'>
         <div style={{ width: 200 }} className="d-flex pos-rel">
-            <input ref={inputRef} style={{ width: '100%' }} />
+            <input ref={inputRef} style={{ width: '100%', backgroundColor: error ? 'red' : '' }} title={error} />
             {loading && <div style={{ position: 'absolute', right: 0 }}>Loading...</div>}
             {rowCount > 0 && <div className='layer' style={{ width: resultWidth || 'auto' }}>
                 <InfiniteLoader

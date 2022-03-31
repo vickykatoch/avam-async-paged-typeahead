@@ -1,25 +1,16 @@
 import { Client, DefaultServerChooser } from "amps";
 import { Observable, BehaviorSubject } from "rxjs";
-import { IAmpsConnectionInfo } from "./models";
+import { AmpsConnectionState, IAmpsConnection, IAmpsConnectionInfo, IConnectionStatus } from "./models";
 
 const RECONNECT_DELAY = 5000;
+const SWEEP_INTERVAL = 60 * 5 * 1000; //5 mins
 
 
-export enum AmpsConnectionState {
-    None,
-    Connecting,
-    Connected,
-    Disconnected
-}
-export interface IConnectionStatus {
-    state: AmpsConnectionState,
-    error?: string;
-}
-class AmpsConnector {
+class AmpsConnector implements IAmpsConnection {
     private readonly _client: Client;
     private readonly _connectionStatusNotifer = new BehaviorSubject<IConnectionStatus>({ state: AmpsConnectionState.None });
 
-    constructor(private connectionInfo: IAmpsConnectionInfo, private onDisposed: () => void) {
+    constructor(private connectionInfo: IAmpsConnectionInfo, private onDisposed: (force?: boolean) => void) {
         const serverChooser = new DefaultServerChooser();
         connectionInfo.url.forEach(url => serverChooser.add(url));
         this._client = new Client(connectionInfo.name).disconnectHandler((client, err) => {
@@ -38,8 +29,8 @@ class AmpsConnector {
         return this._client;
     }
 
-    dispose() {
-        this.onDisposed();
+    dispose(force?: boolean) {
+        this.onDisposed(force);
     }
 
     private connect(delay?: number) {
@@ -57,9 +48,9 @@ class AmpsConnector {
 }
 
 class AmpsConnectionService {
-    private _connectionMap = new Map<string, { refCount: number, connector: AmpsConnector }>();
+    private _connectionMap = new Map<string, { refCount: number, connector: IAmpsConnection, marked?: boolean, timerHandle?: any }>();
 
-    getConnection(connectionInfo: IAmpsConnectionInfo): AmpsConnector {
+    getConnection(connectionInfo: IAmpsConnectionInfo): IAmpsConnection {
         const urlKey = connectionInfo.url.join('.').toLowerCase();
         if (!this._connectionMap.has(urlKey)) {
             this._connectionMap.set(urlKey, {
@@ -69,24 +60,42 @@ class AmpsConnectionService {
         } else {
             const conInfo = this._connectionMap.get(urlKey)!;
             conInfo.refCount++;
+            conInfo.marked = false;
+            conInfo.timerHandle && clearTimeout(conInfo.timerHandle);
+            conInfo.timerHandle=undefined;
             console.log(`Connection : [${urlKey}] has [${conInfo.refCount}] references running`);
-            this._connectionMap.set(urlKey,conInfo);
+            this._connectionMap.set(urlKey, conInfo);
         }
         return this._connectionMap.get(urlKey)!.connector;
     }
 
-    private onConnectionDisposed(urlKey: string) {
+    private onConnectionDisposed(urlKey: string, force?: boolean) {
         if (this._connectionMap.has(urlKey)) {
             const conInfo = this._connectionMap.get(urlKey)!;
             if (conInfo.refCount <= 1) {
-                this._connectionMap.delete(urlKey);
-                conInfo.connector.client.disconnect();
-                console.log(`Connection : [${urlKey}] has been disposed`);
+                conInfo.refCount--;
+                conInfo.marked = true;
+                if (force) {
+                    this._connectionMap.delete(urlKey);
+                    conInfo.connector.client.disconnect();
+                    console.log(`Connection : [${urlKey}] has been forcefully disposed`);
+                } else {
+                    conInfo.timerHandle = setTimeout(() => this.disposeConnection(urlKey), SWEEP_INTERVAL);
+                    this._connectionMap.set(urlKey, conInfo);
+                }
             } else {
                 conInfo.refCount--;
                 this._connectionMap.set(urlKey, conInfo);
                 console.log(`Connection : [${urlKey}] has [${conInfo.refCount}] references running`);
             }
+        }
+    }
+    private disposeConnection(urlKey: string) {
+        const conInfo = this._connectionMap.get(urlKey)!;
+        if (conInfo && conInfo.marked) {
+            this._connectionMap.delete(urlKey);
+            conInfo.connector.client.disconnect();
+            console.log(`Connection : [${urlKey}] has been disposed`);
         }
     }
 }
