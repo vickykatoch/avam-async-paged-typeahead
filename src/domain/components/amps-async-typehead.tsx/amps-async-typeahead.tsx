@@ -16,7 +16,7 @@ const AmpsAsyncPagedTypeahead: React.FC<AmpsAsyncPagedTypeaheadProps> = (props) 
         fetchNext: getAmpsDataLoader(props.connectionInfo, props.subInfo, props.pageSize, props.buildFilter)
     });
 
-    return <AsyncPagedTypeahead {...asyncProps} />
+    return <AsyncPagedTypeahead {...asyncProps} value={props.value}/>
 };
 
 export default AmpsAsyncPagedTypeahead;

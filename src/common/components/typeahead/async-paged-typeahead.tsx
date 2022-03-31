@@ -26,7 +26,6 @@ const AsyncPagedTypeahead: React.FC<AsyncPagedTypeaheadProps> = ({ rowHeight, mi
     const inputRef = React.useRef<HTMLInputElement>(null);
     const [rowCount, setRowCount] = React.useState<number>(0);
     const [dataList, setDataList] = React.useState<Array<any>>([]);
-    const [hasMore, setHasMore] = React.useState<boolean>(false);
     const [loading, setLoading] = React.useState<boolean>(false);
     const [searchText, setSearchText] = React.useState<string>('');
     const [error, setError] = React.useState<string>('');
@@ -58,22 +57,19 @@ const AsyncPagedTypeahead: React.FC<AsyncPagedTypeaheadProps> = ({ rowHeight, mi
                 setError(searchResult.error);
                 setDataList([]);
                 setRowCount(0);
-                setHasMore(false);
             } else {
                 const recCount = searchResult.done ? searchResult.data.length : searchResult.data.length + 1;
                 setRowCount(recCount);
                 setError('');
                 setDataList(searchResult.data);
-                setHasMore(!searchResult.done);
             }
         } else {
             setError('');
             setLoading(false);
             setDataList([]);
             setRowCount(0);
-            setHasMore(false);
         }
-    }, [setLoading, setDataList, setRowCount, setHasMore]);
+    }, [setLoading, setDataList, setRowCount]);
 
     React.useEffect(() => {
         const fn = async () => {
@@ -91,36 +87,33 @@ const AsyncPagedTypeahead: React.FC<AsyncPagedTypeaheadProps> = ({ rowHeight, mi
         } else {
             setData();
         }
-    }, [searchText, setData, setLoading, minChars]);
+    }, [searchText, setData, setLoading,fetchNext, minChars]);
 
     const isRowLoaded = React.useCallback(({ index }) => {
         return Boolean(dataList[index]);
     }, [dataList]);
 
     const loadMoreRows = React.useCallback(async (params: IndexRange) => {
-        if (hasMore) {
-            setLoading(true);
-            const result = await fetchNext(searchText);
-            if (result.error) {
-                setError(result.error);
-                setDataList([]);
-                setRowCount(0);
-                setHasMore(false);
-            } else {
-                const resolvedData = [...dataList, ...result.data];
-                const recCount = result.done ? resolvedData.length : resolvedData.length + 1;
-                setDataList(resolvedData);
-                setRowCount(recCount);
-                setHasMore(!result.done);
-            }
-            setLoading(false);
+        if(!dataList.length) return;
+        setLoading(true);
+        const result = await fetchNext(searchText);
+        if (result.error) {
+            setError(result.error);
+            setDataList([]);
+            setRowCount(0);
+        } else {
+            const resolvedData = [...dataList, ...result.data];
+            const recCount = result.done ? resolvedData.length : resolvedData.length + 1;
+            setDataList(resolvedData);
+            setRowCount(recCount);
         }
-    }, [dataList, hasMore, setLoading, setRowCount, searchText]);
+        setLoading(false);
+    }, [dataList, setLoading, setRowCount, searchText,fetchNext]);
 
     const onItemClick = React.useCallback((item) => {
         onItemSelected && onItemSelected(item);
         setData();
-    }, [setData]);
+    }, [setData,onItemSelected]);
 
     return <div className='d-flex justify-content-center mt-3'>
         <div style={{ width: 200 }} className="d-flex pos-rel">

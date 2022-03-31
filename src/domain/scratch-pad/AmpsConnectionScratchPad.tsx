@@ -1,9 +1,6 @@
 import { head } from 'ramda';
 import React from 'react';
-import { useState } from 'react';
 import { IAmpsConnectionInfo, IAmpsSubscriptionInfo } from '../../common/amps';
-import AmpsConnectionService from '../../common/amps/amps-connection-service';
-import { AmpsPagedDataSubscriber } from '../../common/amps/amps-paged-suscriber';
 import RowRenderer from '../../common/row-renderer';
 import { AmpsAsyncPagedTypeahead } from '../components';
 
@@ -32,23 +29,6 @@ const buildFilter  =(searchText: string): string => {
 
 const AmpsConnectionScratchPad: React.FC = () => {
     const [item, setItem] = React.useState<any>();
-    // const onConnect = async () => {
-    //     const subscriber = new AmpsPagedDataSubscriber(conInfo, subInfo);
-    //     try {
-    //         const iterator = await subscriber.fetchData('/fullName LIKE "(?i)will.*$"', 50);
-    //         const timer = setInterval(async () => {
-    //             const pagedData = await iterator.next();
-    //             console.log(`Page : [${(await pagedData).currentPage}]`, pagedData);
-    //             if (pagedData.done) {
-    //                 clearInterval(timer);
-    //                 console.log('Finished');
-    //             }
-    //         }, 1000);
-    //     } catch (err) {
-    //         console.error(err);
-    //     }
-
-    // }
 
     return <div className="d-flex flex-column flex-grow-1">
         <AmpsAsyncPagedTypeahead
