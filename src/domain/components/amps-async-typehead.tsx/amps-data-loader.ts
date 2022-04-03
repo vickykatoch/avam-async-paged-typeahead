@@ -2,7 +2,7 @@ import { AmpsPagedDataSubscriber, IAmpsConnectionInfo, IAmpsSubscriptionInfo, IP
 import { IAsyncData } from "../../../common/components";
 
 type FetchDataFn = (searchToken: string, newQuery?: boolean) => Promise<IAsyncData>;
-const QUERY_TIMEOUT = 2000;
+const QUERY_TIMEOUT = 10000;
 
 export function getAmpsDataLoader(connectionInfo: IAmpsConnectionInfo,
     subInfo: IAmpsSubscriptionInfo,

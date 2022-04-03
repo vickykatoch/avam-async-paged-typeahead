@@ -38,9 +38,10 @@ class AmpsConnector implements IAmpsConnection {
             this._connectionStatusNotifer.next({ state: AmpsConnectionState.Connecting });
             try {
                 const message = await this._client.connect();
-                console.log(message);
+                console.log('Connection succeeded');
                 this._connectionStatusNotifer.next({ state: AmpsConnectionState.Connected });
             } catch (err) {
+                console.error('Connection failed',err);
                 // Ignore the error as error handler will pick up and 
             }
         }, delay || RECONNECT_DELAY);

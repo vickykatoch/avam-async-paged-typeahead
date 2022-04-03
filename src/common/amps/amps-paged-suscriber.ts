@@ -56,7 +56,7 @@ export class AmpsPagedDataSubscriber {
         return subId ? cmd.subId(subId) : cmd;
     }
 
-    private getPageIterator(filterQuery: string, batchSize: number, totalRecords: number, connection: IAmpsConnection): PageIterator {
+    private getPageIterator(filterQuery: string, batchSize: number, totalRecords: number, connection: IAmpsConnection, timeout?: number): PageIterator {
         let currentPage = 0;
         const totalPages = totalRecords === 0 ? 0 : Math.ceil(totalRecords / batchSize);
         let done = totalRecords === 0;
@@ -66,8 +66,7 @@ export class AmpsPagedDataSubscriber {
                 resolve({ currentPage, totalPages, done });
             }
             try {
-                const { client } = connection;
-                const data = await this.fetchPageData(filterQuery, currentPage, batchSize, client);
+                const data = await this.fetchPageData(filterQuery, currentPage, batchSize, connection,timeout);
                 currentPage++;
                 done = currentPage === totalPages;
                 resolve({
@@ -86,20 +85,29 @@ export class AmpsPagedDataSubscriber {
         return { next, dispose: () => connection.dispose() }
     }
 
-    private fetchPageData(filterQuery: string, pageIndex: number, batchSize: number, client: Client) {
-        const options = `${this.subInfo.options}, skip_n=${pageIndex * batchSize}, top_n=${batchSize}`;
-        const cmd = this.buildCommand(filterQuery, options);
+    private fetchPageData(filterQuery: string, pageIndex: number, batchSize: number, connection: IAmpsConnection, timeout?: number) {
+
         return new Promise<any[]>(async (resolve, reject) => {
-            const collection: any[] = [];
-            const subId = await client.execute(cmd, (msg: Message) => {
-                const { c, data } = msg;
-                if (data) {
-                    collection.push(msg.data);
-                } else if (c === 'group_end') {
-                    subId && client.unsubscribe(subId);
-                    resolve(collection);
-                }
-            }).catch(reject);
+            connection.connecionStatus$.pipe(
+                first(s => s.state === AmpsConnectionState.Connected),
+                rxTimeout({ first: timeout || Number.MIN_SAFE_INTEGER, with: () => throwError(() => new Error('timedout')) })
+            ).subscribe({
+                next: async () => {
+                    const options = `${this.subInfo.options}, skip_n=${pageIndex * batchSize}, top_n=${batchSize}`;
+                    const cmd = this.buildCommand(filterQuery, options);
+                    const collection: any[] = [];
+                    const subId = await connection.client.execute(cmd, (msg: Message) => {
+                        const { c, data } = msg;
+                        if (data) {
+                            collection.push(msg.data);
+                        } else if (c === 'group_end') {
+                            subId && connection.client.unsubscribe(subId);
+                            resolve(collection);
+                        }
+                    }).catch(reject);
+                },
+                error: reject                
+            });
         });
     }
 
