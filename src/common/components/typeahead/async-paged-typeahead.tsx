@@ -13,6 +13,7 @@ export interface AsyncPagedTypeaheadProps {
     scrollThreshold: number;
     minChars?: number;
     rowHeight: number;
+    resultHeight?:number;
     resultWidth?: number;
     fetchNext: (token: string, newQuery?: boolean) => Promise<IAsyncData>;
     RowItemRenderer: React.FunctionComponent<{ selected: boolean, listRowProps: ListRowProps; item: any; onClick: (item: any) => void; style: React.CSSProperties }>;
@@ -26,7 +27,7 @@ const isInView = (container: Element, element: Element): boolean => {
     return (elemRect.top >= containerRect.y && elemRect.bottom <= containerRect.bottom)
 };
 
-const AsyncPagedTypeahead: React.FC<AsyncPagedTypeaheadProps> = ({ rowHeight, minChars, scrollThreshold, resultWidth,
+const AsyncPagedTypeahead: React.FC<AsyncPagedTypeaheadProps> = ({ rowHeight, minChars, scrollThreshold,resultHeight, resultWidth,
     fetchNext, RowItemRenderer, onItemSelected, value, itemToString }) => {
     const inputRef = React.useRef<HTMLInputElement>(null);
     const resultElemRef = React.useRef<HTMLDivElement>(null);
@@ -163,7 +164,7 @@ const AsyncPagedTypeahead: React.FC<AsyncPagedTypeaheadProps> = ({ rowHeight, mi
     const handleBlur = (evt: any) => {
         setTimeout(()=> {
             inputRef.current!.value = value ? itemToString ? itemToString(value) : value : '';
-            setData();
+            // setData();
         }, 200);
     }
 
@@ -176,7 +177,7 @@ const AsyncPagedTypeahead: React.FC<AsyncPagedTypeaheadProps> = ({ rowHeight, mi
                 onBlur={handleBlur}
             />
             {loading && <div style={{ position: 'absolute', right: 0 }}>Loading...</div>}
-            {rowCount > 0 && <div className='layer' style={{ width: resultWidth || 'auto' }} ref={resultElemRef}>
+            {rowCount > 0 && <div className='layer' style={{ width: resultWidth || 'auto', height: resultHeight || 200 }} ref={resultElemRef}>
                 <InfiniteLoader
                     threshold={scrollThreshold}
                     isRowLoaded={isRowLoaded}

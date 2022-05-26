@@ -39,7 +39,9 @@ const AmpsConnectionScratchPad: React.FC = () => {
             buildFilter={buildFilter}
             itemToString={item => item.fullName}
             onItemSelected={setItem}
-            scrollThreshold={15} RowItemRenderer={RowRenderer} rowHeight={20} minChars={3} resultWidth={400}
+            scrollThreshold={15} RowItemRenderer={RowRenderer} rowHeight={20} minChars={3} 
+            resultHeight={100}
+            resultWidth={400}
         />
     </div>
 };
