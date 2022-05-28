@@ -1,9 +1,9 @@
 import React from 'react';
 import './App.scss';
-import { JsonFormEditor } from './common/components/json-object-editor';
+import { JsonFormEditor } from './common/components/json-form-editor';
 import { JsonTree } from './common/components/jtree-editor';
 import { AmpsConnectionScratchPad } from './domain/scratch-pad';
-import jsonData from './common/components/json-object-editor/file.json';
+import jsonData from './common/components/json-form-editor/file.json';
 
 const data = [
     {
@@ -96,8 +96,8 @@ function App() {
                     isDefaultOpen={false}
                     noLeftMargin={false} />
             </div>
-            <div className='d-flex flex-grow-1 flex-shrink-0'>
-                <JsonFormEditor data={jsonData}/>
+            <div className='d-flex flex-grow-1 flex-shrink-0 flex-column'>
+                <JsonFormEditor data={jsonData} onExpandToggle={(child)=> console.log(child)}/>
             </div>
         </div>
     );

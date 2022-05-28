@@ -1,0 +1,71 @@
+[
+    {
+        "name": "Balwinder Katoch",
+        "age": 48,
+        "address": {
+            "street": "108 Kingsland Cir",
+            "city": "Monmouth Junction",
+            "state": "NJ"
+        }
+    },
+    {
+        "name": "Mamta Katoch",
+        "age": 40,
+        "address": {
+            "street": "10 Dawn Ct",
+            "city": "Monmouth Junction",
+            "state": "NJ"
+        },
+        "interests": ["playing", "coding", "reading"]
+    },
+    {
+        "name": "Aryan Katoch",
+        "age": 18,
+        "address": {
+            "street": "4 Joann Ct",
+            "city": "Monmouth Junction",
+            "state": "NJ"
+        },
+        "schools": [
+            {
+                "name": "Lincoln School",
+                "place": "South Edison"
+            },
+            {
+                "name": "Woodrow Wilson Elementary",
+                "place": "North Edison"
+            },
+            {
+                "name": "Crossroad North",
+                "place": "Monmouth Jn"
+            },
+            {
+                "name": "South Brunswick High School",
+                "place": "Monmouth Jn"
+            }
+        ]
+    },
+    {
+        "name": "Aadi Katoch",
+        "age": 10,
+        "address": {
+            "street": "23 Oxford Arms",
+            "city": "Edison",
+            "state": "NJ"
+        },
+        "schools": [
+            {
+                "name": "Goddard Public School",
+                "place": "Monmouth Jn"
+            },
+            {
+                "name": "Brooks Elementary",
+                "place": "Monmouth Jn"
+            },
+            {
+                "name": "Brooks Crossing",
+                "place": "Monmouth Jn"
+            }
+        ]
+    }
+]
