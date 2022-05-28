@@ -57,9 +57,3 @@ class JsonTree extends Component<JsonTreeProps, IState>{
 }
 export default JsonTree;
 
-{/* <div className="">
-{this.getTree(this.state.data)}
-</div> */}
-// export const JsonTree: FC<JsonTreeProps> = ({value,readonly})=> {
-//     return (<h1>JSON Tree Editor</h1>);
-// };
