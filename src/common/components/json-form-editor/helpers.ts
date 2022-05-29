@@ -15,7 +15,7 @@ const convert = (item: any): Array<IJsonTreeNode> => {
                     name: idx,
                     value: convert(i),
                     type:EntryType.Object,
-                    expanded: true,
+                    expanded: false,
                 }));
             } else {
                 type =EntryType.PrimitiveArray;
@@ -32,7 +32,7 @@ const convert = (item: any): Array<IJsonTreeNode> => {
             name: key,
             value,
             type,
-            expanded: true,
+            expanded: false,
         };
     });
     return x;

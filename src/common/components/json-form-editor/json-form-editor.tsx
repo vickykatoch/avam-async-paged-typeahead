@@ -14,18 +14,19 @@ interface JsonFormEditorProps {
     onExpandToggle: (node: IJsonTreeNode) => void;
 }
 interface IState {
-    open: boolean;
+    defaultOpen: boolean;
     nodes: Array<IJsonTreeNode>;
 }
 //#endregion
 
 export const JsonFormEditor: FC<JsonFormEditorProps> = ({ defaultOpen, data }) => {
-    const [state, setState] = useState<IState>({ open: false, nodes: [] });
+    const [state, setState] = useState<IState>({ defaultOpen: false, nodes: [] });
 
     useEffect(() => {
-        setState({ open: defaultOpen ?? false, nodes: fromJson(data || []) });
+        setState({ defaultOpen: defaultOpen ?? false, nodes: fromJson(data || []) });
     }, [data, setState, defaultOpen]);
+
     if(!state.nodes.length) return <p></p>;
 
-    return <JsonTree nodes={state.nodes} />;
+    return <JsonTree {...state}/>;
 };

@@ -89,6 +89,10 @@ function App() {
     return (
         <div className="d-flex flex-grow-1" style={{ marginTop: 50 }}>
             {/* <AmpsConnectionScratchPad /> */}
+            <div className='d-flex flex-grow-1 flex-shrink-0 flex-column'>
+                <JsonFormEditor data={jsonData} 
+                onExpandToggle={(child)=> console.log(child)} defaultOpen={false}/>
+            </div>
             <div className='d-flex flex-column flex-grow-1 flex-shrink-0'>
                 <JsonTree
                     data={data}
@@ -96,9 +100,7 @@ function App() {
                     isDefaultOpen={false}
                     noLeftMargin={false} />
             </div>
-            <div className='d-flex flex-grow-1 flex-shrink-0 flex-column'>
-                <JsonFormEditor data={jsonData} onExpandToggle={(child)=> console.log(child)}/>
-            </div>
+            
         </div>
     );
 }
