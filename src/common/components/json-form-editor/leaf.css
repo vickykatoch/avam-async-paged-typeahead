@@ -1,0 +1,19 @@
+.leaf {
+    border: 1px solid;
+    margin-left: .5em;
+    margin-bottom: .1em;
+}
+
+.leaf .name {
+    padding-left: .5em;  
+    padding-right: .5em;  
+    width: 200px;
+    background-color: rgb(227 227 227);
+}
+
+.leaf .value {
+    padding-left: .5em;  
+}
+.leaf input {
+    border: none;
+}

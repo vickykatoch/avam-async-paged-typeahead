@@ -1,32 +1,50 @@
 //#region IMPORTS
-import React, { FC, useEffect, useState } from 'react';
-import { fromJson } from './helpers';
+import { omit } from 'ramda';
+import React, { FC, forwardRef, useEffect, useImperativeHandle, useState } from 'react';
+import { fromJson, toJson } from './helpers';
 import { JsonTree } from './json-tree';
-import {  IJsonTreeNode } from './models';
+import { IJsonTreeNode } from './models';
 //#endregion
 
 //#region MODULE TYPES/FUNCS
 interface JsonFormEditorProps {
     defaultOpen?: boolean;
-    parentComponent?: React.FC;
-    childComponent?: React.FC;
+    customParent?: React.FC;
+    customChild?: React.FC;
     data: Array<any>;
-    onExpandToggle: (node: IJsonTreeNode) => void;
+    editName?:boolean;
+    editValue?: boolean;
+    ref:any;
+    // onExpandToggle: (node: IJsonTreeNode) => void;
 }
 interface IState {
     defaultOpen: boolean;
     nodes: Array<IJsonTreeNode>;
+    customParent?: React.FC;
+    customChild?: React.FC;
+    editName?:boolean;
+    editValue?: boolean;
+    // onExpandToggle: (node: IJsonTreeNode) => void;
 }
 //#endregion
 
-export const JsonFormEditor: FC<JsonFormEditorProps> = ({ defaultOpen, data }) => {
-    const [state, setState] = useState<IState>({ defaultOpen: false, nodes: [] });
+export const JsonFormEditor: FC<JsonFormEditorProps> = forwardRef((props,ref) => {
+    const [state, setState] = useState<IState>();
+    
 
     useEffect(() => {
-        setState({ defaultOpen: defaultOpen ?? false, nodes: fromJson(data || []) });
-    }, [data, setState, defaultOpen]);
+        setState({
+            ...omit(['data'], props),
+            defaultOpen: props.defaultOpen ?? false,            
+            nodes: fromJson(props.data || []),
+        });
+    }, [props, setState]);
 
-    if(!state.nodes.length) return <p></p>;
+    useImperativeHandle(ref,()=>({
+        getJson: ()=>  toJson(state!.nodes)
+    }));
 
-    return <JsonTree {...state}/>;
-};
+    if (!state) return <p></p>;
+
+    return <JsonTree {...state} />;
+});

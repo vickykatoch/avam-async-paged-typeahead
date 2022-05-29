@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import './App.scss';
 import { JsonFormEditor } from './common/components/json-form-editor';
 import { JsonTree } from './common/components/jtree-editor';
@@ -85,13 +85,17 @@ const data = [
 ];
 
 function App() {
+    const jsonRef = useRef<any>();
 
     return (
         <div className="d-flex flex-grow-1" style={{ marginTop: 50 }}>
             {/* <AmpsConnectionScratchPad /> */}
+            {/* <button onClick={()=> {
+                const x = jsonRef.current?.getJson();
+                console.log(x);
+            }}>Get Json</button> */}
             <div className='d-flex flex-grow-1 flex-shrink-0 flex-column'>
-                <JsonFormEditor data={jsonData} 
-                onExpandToggle={(child)=> console.log(child)} defaultOpen={false}/>
+                <JsonFormEditor ref={jsonRef} data={jsonData} defaultOpen={false} editName={false} editValue={true}/>
             </div>
             <div className='d-flex flex-column flex-grow-1 flex-shrink-0'>
                 <JsonTree

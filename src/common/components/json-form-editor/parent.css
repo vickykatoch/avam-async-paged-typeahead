@@ -1,0 +1,9 @@
+
+.parent .expCollapse {
+    font-size: 1.2em;
+    font-weight: bolder;
+    margin-right: .5em;
+    cursor: pointer;
+    border: 1px solid;
+    padding: 0 .1em;
+}

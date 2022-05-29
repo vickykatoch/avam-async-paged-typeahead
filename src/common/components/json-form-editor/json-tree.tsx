@@ -1,23 +1,27 @@
 import { FC } from 'react';
-import { Harry } from './harry';
+import { Leaf } from './leaf';
 import { EntryType, IJsonTreeNode } from './models';
-import { Tom } from './parent';
+import { Parent } from './parent';
 
 interface JsonTreeProps {
-    open?: boolean;
+    defaultOpen: boolean;
     nodes: Array<IJsonTreeNode>;
+    customParent?: React.FC;
+    customChild?: React.FC;
+    editName?:boolean;
+    editValue?: boolean;
 }
 
-export const JsonTree: FC<JsonTreeProps> = ({ nodes,open }) => {
-    if (!nodes.length) return <p></p>;
+export const JsonTree: FC<JsonTreeProps> = (props) => {
+    if (!props.nodes.length) return <p></p>;
 
     return (
         <>
-            {nodes.map((node) => {
+            {props.nodes.map((node, index) => {
                 if (![EntryType.Primitive, EntryType.PrimitiveArray].includes(node.type)) {
-                    return <Tom node={node} key={node.id} open={open} />;
+                    return <Parent {...props} node={node} key={node.id}  />;
                 } else {
-                    return <Harry node={node} key={node.id} />;
+                    return <Leaf node={node} key={node.id} customChild={props.customChild} editName={props.editName} editValue={props.editValue}/>;
                 }
             })}
         </>

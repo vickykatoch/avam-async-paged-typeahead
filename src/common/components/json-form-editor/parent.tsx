@@ -1,27 +1,39 @@
 import React, { FC, useState } from 'react';
+import { createNode } from './helpers';
 import { JsonTree } from './json-tree';
 import { EntryType, IJsonTreeNode } from './models';
+import './parent.css';
 
-interface TopProps {
-    open?:boolean;
+interface ParentProps {
+    defaultOpen: boolean;
     node: IJsonTreeNode;
-    parentComponent?: React.FC;
-    childComponent?: React.FC;
-    onExpandToggle?: (node: IJsonTreeNode) => void;
+    customParent?: React.FC;
+    customChild?: React.FC;
+    editName?: boolean;
+    editValue?: boolean;
 }
 
-
-export const Tom: FC<TopProps> = ({open, node, parentComponent, childComponent, onExpandToggle }) => {
-    const [isOpen, setIsOpen] = useState<boolean>(open ?? false);
-    debugger;
+export const Parent: FC<ParentProps> = (props) => {
+    const { defaultOpen, node, customParent } = props;
+    const [open, setOpen] = useState<boolean>(defaultOpen);
+    
     return (
-        <div className='d-flex flex-column' style={{marginLeft: '1em'}}>
-            <strong onClick={()=> {
-               
-                setIsOpen(!isOpen);
-                onExpandToggle && onExpandToggle(node);
-            }}>{isOpen ? '-' : '+'}{node.name}</strong>
-            {isOpen && <JsonTree nodes={node.value as Array<IJsonTreeNode>} open={isOpen}/>}
+        <div className="d-flex flex-column parent" style={{ marginLeft: '1em' }}>
+            <div className="d-flex flex-shrink-0">
+                <strong className="flex-shrink-0 expCollapse" onClick={() => setOpen(!open)}>
+                    {open ? '-' : '+'}
+                </strong>
+                <span className="flex-grow-1">{node.name}</span>
+                {/* <span className="d-flex flex-shrink-0">
+                    <strong className="expCollapse mx-1" title="Add node" >
+                        +
+                    </strong>
+                    <strong className="expCollapse" title="Delete node">
+                        -
+                    </strong>
+                </span> */}
+            </div>
+            {open && <JsonTree {...props} nodes={node.value as Array<IJsonTreeNode>} defaultOpen={defaultOpen} />}
         </div>
     );
 };
