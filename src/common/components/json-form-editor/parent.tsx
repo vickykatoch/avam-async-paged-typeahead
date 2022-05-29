@@ -1,7 +1,6 @@
 import React, { FC, useState } from 'react';
-import { createNode } from './helpers';
 import { JsonTree } from './json-tree';
-import { EntryType, IJsonTreeNode } from './models';
+import {  IJsonTreeNode } from './models';
 import './parent.css';
 
 interface ParentProps {
